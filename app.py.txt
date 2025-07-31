@@ -1,0 +1,116 @@
+# Cybersecurity Threat Detection AI Project
+
+import os
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier, IsolationForest
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+import streamlit as st
+
+# -------------------------------
+# Malware Detection Module
+# -------------------------------
+def train_malware_detector():
+    data = pd.read_csv("data/malware_data.csv")
+    X = data.drop("label", axis=1)
+    y = data["label"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    clf = RandomForestClassifier()
+    clf.fit(X_train, y_train)
+    print("Malware Detection Report:")
+    print(classification_report(y_test, clf.predict(X_test)))
+    joblib.dump(clf, "models/malware_model.pkl")
+
+def predict_malware(features):
+    clf = joblib.load("models/malware_model.pkl")
+    return clf.predict([features])[0]
+
+# -------------------------------
+# Ransomware Detection Module
+# -------------------------------
+def train_ransomware_detector():
+    data = pd.read_csv("data/ransomware_data.csv")
+    X = data.drop("label", axis=1)
+    y = data["label"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    clf = RandomForestClassifier()
+    clf.fit(X_train, y_train)
+    print("Ransomware Detection Report:")
+    print(classification_report(y_test, clf.predict(X_test)))
+    joblib.dump(clf, "models/ransomware_model.pkl")
+
+def predict_ransomware(features):
+    clf = joblib.load("models/ransomware_model.pkl")
+    return clf.predict([features])[0]
+
+# -------------------------------
+# Intrusion Detection Module
+# -------------------------------
+def train_intrusion_detector():
+    data = pd.read_csv("data/intrusion_data.csv")
+    X = data.drop("label", axis=1)
+    y = data["label"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    clf = RandomForestClassifier()
+    clf.fit(X_train, y_train)
+    print("Intrusion Detection Report:")
+    print(classification_report(y_test, clf.predict(X_test)))
+    joblib.dump(clf, "models/intrusion_model.pkl")
+
+def predict_intrusion(features):
+    clf = joblib.load("models/intrusion_model.pkl")
+    return clf.predict([features])[0]
+
+# -------------------------------
+# Anomaly Detection Module
+# -------------------------------
+def train_anomaly_detector():
+    data = pd.read_csv("data/anomaly_data.csv")
+    clf = IsolationForest(contamination=0.1)
+    clf.fit(data)
+    joblib.dump(clf, "models/anomaly_model.pkl")
+
+def predict_anomaly(features):
+    clf = joblib.load("models/anomaly_model.pkl")
+    return clf.predict([features])[0]  # -1 = anomaly
+
+# -------------------------------
+# Streamlit Interface
+# -------------------------------
+def main():
+    st.title("Cybersecurity Threat Detection using AI")
+    st.sidebar.title("Choose Threat Type")
+    choice = st.sidebar.selectbox("Threat Type", ["Malware", "Intrusion", "Anomaly", "Ransomware"])
+
+    if choice == "Malware":
+        features = st.text_input("Enter comma-separated features")
+        if st.button("Detect"):
+            feature_list = list(map(float, features.split(',')))
+            result = predict_malware(feature_list)
+            st.write(f"Prediction: {'Malware' if result else 'Benign'}")
+
+    elif choice == "Intrusion":
+        features = st.text_input("Enter comma-separated features")
+        if st.button("Detect"):
+            feature_list = list(map(float, features.split(',')))
+            result = predict_intrusion(feature_list)
+            st.write(f"Prediction: {'Intrusion' if result else 'Normal'}")
+
+    elif choice == "Anomaly":
+        features = st.text_input("Enter comma-separated features")
+        if st.button("Detect"):
+            feature_list = list(map(float, features.split(',')))
+            result = predict_anomaly(feature_list)
+            st.write(f"Prediction: {'Anomaly Detected' if result == -1 else 'Normal'}")
+
+    elif choice == "Ransomware":
+        features = st.text_input("Enter comma-separated features")
+        if st.button("Detect"):
+            feature_list = list(map(float, features.split(',')))
+            result = predict_ransomware(feature_list)
+            st.write(f"Prediction: {'Ransomware' if result else 'Normal'}")
+
+if __name__ == "__main__":
+    main()
